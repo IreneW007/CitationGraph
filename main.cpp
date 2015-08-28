@@ -44,72 +44,111 @@ int main()
     }
     
     // read terms of interest from file
-    string f3 = "/home/yiren/Desktop/parasim/fields.txt";
+    string f3 = "/home/yiren/Desktop/parasim/data/fields.txt";
     vector<string> terms = getTerms(f3);
-    
+     
     // constructing graph
-    Graph graph("/home/yiren/Desktop/parasim/FileName.txt", '\t', 'r', linknum);
+    Graph graph("/home/yiren/Desktop/parasim/data/nFF1to75.txt", '\t', 'f', linknum);
     
-    
+    /*
     // save node info {NodeID, inlink, outlink} to file
     // last line {total_NodeNum, total_inlink, total_outlink}
     string fout = "/home/yiren/Desktop/parasim/results/LinkNum.txt";
     long total_outlink = 0;
     long total_inlink = 0;
     getLinkNum(graph, total_inlink, total_outlink, fout);
+    */
     
-    // calculating paradigmatic value
-    double para;
-    cout << "calculating paradigmatic relations ... " << endl;
-    for (int i=0; i<terms.size(); i++)
-    {
-        cout << "... processing node " << i+1 << endl;
-        int iIndex = graph.getIndex(terms[i]);
-        if (iIndex == -1) continue;
-        double co_citing = 0;
-        double co_cited = 0;
-        for (int j=0; j<graph.nodeSet.size(); j++)
-        {
-            para = graph.getParaSim(iIndex, j, co_citing, co_cited);
-            if (para!=0)
-                file1 << graph.nodeSet[iIndex].term << "\t" << graph.nodeSet[j].term << "\t" << para << "\t" << co_citing << "\t" << co_cited << endl;
-        }
-    }
-    
-    double alpha = 0.7;
     // calculating syntagmatic value
-    double syn;
+    double alpha = 0.7;
+    double syn = 0;
     cout << "calculating syntagmatic relations ... " << endl;
-    for (int i=0; i<terms.size(); i++)
+    // for (int i=0; i<terms.size(); i++)
+    for (int i=0; i<graph.nodeSet.size(); i++)
     {
         cout << "... processing node " << i+1 << endl;
-        int iIndex = graph.getIndex(terms[i]);
-        if (iIndex == -1) continue;
+        // int iIndex = graph.getIndex(terms[i]);
+        // if (iIndex == -1) continue;
+        int iIndex = i;
+        
+        // from node_i
+        vector<int> toIndex;
+        vector<double> syn1;
+        double sum1 = 0;
         for (auto elem: graph.edgeWeightFrom[iIndex])
         {
             int jIndex = elem.first;
             syn = graph.getSyntagSim(iIndex, jIndex, alpha);
             if (syn!=0)
-                file2 << graph.nodeSet[iIndex].term << "\t" << graph.nodeSet[jIndex].term << "\t" << syn <<endl;
+            {
+                toIndex.push_back(jIndex);
+                syn1.push_back(syn);
+                sum1 += syn;
+            }
         }
+        // normalize and output
+        for (int k=0; k<toIndex.size(); k++)
+        {
+            file2 << graph.nodeSet[iIndex].term << "\t" << graph.nodeSet[toIndex[k]].term << "\t" << syn1[k]/sum1 << endl;
+        }
+        
+    /*
+        // to node_i
+        vector<int> fromIndex;
+        vector<double> syn2;
+        double sum2 = 0;
         for (auto elem: graph.edgeWeightTo[iIndex])
         {
             int jIndex = elem.first;
             syn = graph.getSyntagSim(jIndex, iIndex, alpha);
             if (syn!=0)
-                file2 << graph.nodeSet[jIndex].term << "\t" << graph.nodeSet[iIndex].term << "\t" << syn <<endl;
+            {
+                fromIndex.push_back(jIndex);
+                syn2.push_back(syn);
+                sum2 += syn;
+            }
         }
+        for (int k=0; k<fromIndex.size(); k++)
+        {
+            file2 << graph.nodeSet[fromIndex[k]].term << "\t" << graph.nodeSet[iIndex].term << "\t" << syn2[k]/sum2 << endl;
+        }
+     */
     }
+    
+    /*
+     // calculating paradigmatic value
+     double para;
+     cout << "calculating paradigmatic relations ... " << endl;
+     for (int i=0; i<terms.size(); i++)
+     {
+         cout << "... processing node " << i+1 << endl;
+         int iIndex = graph.getIndex(terms[i]);
+         if (iIndex == -1) continue;
+         for (int j=0; j<graph.nodeSet.size(); j++)
+         {
+             para = graph.getParaSim(iIndex, j);
+             if (para!=0)
+                 file1 << graph.nodeSet[iIndex].term << "\t" << graph.nodeSet[j].term << "\t" << para << endl;
+         }
+
+    }
+     */
     
     file1.close();
     file2.close();
     
-
-    // get depend_score
     string in = "/home/yiren/Desktop/parasim/results/syntag.txt";
+    string out_from = "/home/yiren/Desktop/parasim/results/syn_from.txt";
+    string out_eq = "/home/yiren/Desktop/parasim/results/syn_eq.txt";
+    getDependency(in, out_from, out_eq, '\t');
+    
+    
+    // get depend_score
+    in = "/home/yiren/Desktop/parasim/results/syntag.txt";
     string out  = "/home/yiren/Desktop/parasim/results/depend_score.txt";
-    double threshold = 0.002;
-    getDependency(in, out, threshold, '\t');
+    double threshold = 0.001;
+    SyntagCmp(in, out, threshold, '\t');
+    
     
     // compare depend_score outcome
     // get general terms
