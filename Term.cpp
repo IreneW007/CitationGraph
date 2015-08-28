@@ -13,7 +13,7 @@
  * return map {fromTerm, toTerm, sim}
  * on condition that sim >= threshold
  */
-map< string, map<string, double> > readSim(vector<string> &terms, string fin, double threshold, char delim)
+map< string, map<string, double> > readSim(vector<string> &terms, string fin, char fromORto, double threshold, char delim)
 {
     // input file
     ifstream filein(fin.c_str());
@@ -22,8 +22,14 @@ map< string, map<string, double> > readSim(vector<string> &terms, string fin, do
         cout << "Error: can't open " << fin << endl;
         exit (-1);
     }
-    
+    if (fromORto!='f' && fromORto!='t')
+    {
+        cout << "Warning: invalid input in fromORto (f/t)! Use defaulted value f" << endl;
+        fromORto = 'f';
+    }
+
     map< string, map<string, double> > synFrom;  // {from, to, syntag}
+    map< string, map<string, double> > synTo;
     map< string, map<string, double> > score;
     
     // read data from file {from, to syntag}
@@ -39,13 +45,23 @@ map< string, map<string, double> > readSim(vector<string> &terms, string fin, do
         syntag = std::stod(token);
         if (syntag < threshold)
             continue;
-        synFrom[fromTerm][toTerm] = syntag;
-        if (find(terms.begin(), terms.end(), fromTerm) == terms.end())
-            terms.push_back(fromTerm);
+        if (fromORto == 'f')
+        {
+            synFrom[fromTerm][toTerm] = syntag;
+            if (find(terms.begin(), terms.end(), fromTerm) == terms.end())
+                terms.push_back(fromTerm);
+        }
+        else
+        {
+            synTo[toTerm][fromTerm] = syntag;
+            if (find(terms.begin(), terms.end(), toTerm) == terms.end())
+                terms.push_back(toTerm);
+        }
     }
     cout << "loading done!" << endl;
     filein.close();
-    return synFrom;
+    if (fromORto == 'f') return synFrom;
+    else return synTo;
 }
 
 
