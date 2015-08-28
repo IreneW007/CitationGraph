@@ -8,13 +8,93 @@
 
 #include "Score.h"
 
+void getDependency(string fin, string fout_from, string fout_eq, char delim)
+{
+    vector<string> terms;
+    map< string, map<string, double> >synFrom = readSim(terms, fin, 0, delim);
+    
+    // output file
+    ofstream out_from(fout_from.c_str());
+    if (!out_from)
+    {
+        cout << "Error: can't open " << fout_from << endl;
+        exit (-1);
+    }
+    ofstream out_eq(fout_eq.c_str());
+    if (!out_eq)
+    {
+        cout << "Error: can't open " << fout_eq << endl;
+        exit (-1);
+    }
+    
+    // parameters
+    double threshold = 1.5;
+    
+    // get dependency probability
+    for (int i=0; i<terms.size(); i++)
+    {
+        cout << "... processing term " << i << endl;
+        // variables
+        string term1 = terms[i];
+        double syn12, syn21, score;
+        vector<string> toTerm, eqTerm;
+        vector<double> toSyn, eqSyn;
+        double toSum = 0, eqSum = 0;
+        
+        // calcultion
+        for (auto elem: synFrom[term1])
+        {
+            string term2 = elem.first;
+            syn12 = elem.second;
+            if (synFrom.find(term2) != synFrom.end() && synFrom[term2].find(term1) != synFrom[term2].end())
+            {
+                syn21 = synFrom[term2][term1];
+                if (syn21>0.001 && syn12/syn21 > threshold)
+                {
+                    score = syn12 * syn12/(syn12+syn21);
+                    toTerm.push_back(term2);
+                    toSyn.push_back(score);
+                    toSum += score;
+                }
+                else if ((syn12/syn21<=threshold && syn12/syn21>=1) || (syn21/syn12<=threshold && syn21/syn12>=1))
+                {
+                    score = syn12 * syn21 / (syn12+syn21);
+                    eqTerm.push_back(term2);
+                    eqSyn.push_back(score);
+                    eqSum += score;
+                    toSum += score;
+                }
+            }
+            else
+            {
+                score = syn12;
+                toTerm.push_back(term2);
+                toSyn.push_back(score);
+                toSum += score;
+            }
+        }
+        
+        // output
+        for (int k=0; k<toTerm.size(); k++)
+            out_from << term1 << delim << toTerm[k] << delim << toSyn[k]/toSum << endl;
+        for (int k=0; k<eqTerm.size(); k++)
+            out_eq << term1 << delim << eqTerm[k] << delim << eqSyn[k]/toSum << endl;
+    }
+    
+    out_eq.close();
+    out_from.close();
+    return;
+}
+
+
+
 /* 
  * calculate depedency score
  * score = syn(A->B) / syn(B->A) (where syn>threshold, score>1)
  * input syntagmatic file {FID1, FID2, SIM}
  * output dependency score to file {FID1, FID2, Score}
  */
-void getDependency(string fin, string fout, double threshold, char delim)
+void SyntagCmp(string fin, string fout, double threshold, char delim)
 {
     vector<string> terms;
     map< string, map<string, double> >synFrom = readSim(terms, fin, threshold, delim);
@@ -48,8 +128,7 @@ void getDependency(string fin, string fout, double threshold, char delim)
                 fileout << term1 << "\t" << term2 << "\t" << synscore << endl;
             }
         }
-    }
-    
+    }    
     fileout.close();
     return;
 }
