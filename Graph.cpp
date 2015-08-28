@@ -184,7 +184,7 @@ Graph::Graph(string filename, char delim, char fileOrDir, int linknum)
  * calculate paradigmatic value
  * input two node index
  */
-double Graph::getParaSim(int index1, int index2, double &co_citing, double &co_cited)
+double Graph::getParaSim(int index1, int index2)
 {
     // invalid index
     if (index1<0 || index1>=nodeSet.size() || index2<0 || index2>=nodeSet.size())
@@ -231,8 +231,6 @@ double Graph::getParaSim(int index1, int index2, double &co_citing, double &co_c
         sum3 += (weight1u / (double) nodeSet[index1].outlink) * (weight2u / (double) nodeSet[u].inlink);
         sum4 += (weight1u / (double) nodeSet[u].inlink) * (weight2u / (double) nodeSet[index2].outlink);
     }
-    co_citing = sum1 * sum2;
-    co_cited = sum3 * sum4;
     return sum1*sum2*sum3*sum4 / sqrt((double)(vSet.size()*uSet.size()));
 }
 
@@ -241,7 +239,7 @@ double Graph::getParaSim(int index1, int index2, double &co_citing, double &co_c
 * calculate paradigmatic value
 * input two terms
 */
-double Graph::getParaSim(string term1, string term2, double &co_citing, double &co_cited)
+double Graph::getParaSim(string term1, string term2)
 {
     int index1 = getIndex(term1);
     int index2 = getIndex(term2);
@@ -250,7 +248,7 @@ double Graph::getParaSim(string term1, string term2, double &co_citing, double &
         if (term1 == term2) return 1;
         else return 0;
     }
-    return getParaSim(index1, index2, co_citing, co_cited);
+    return getParaSim(index1, index2);
 }
 
 
@@ -264,9 +262,6 @@ double Graph::getSyntagSim(int index1, int index2, double alpha)
     if (index1<0 || index1>=nodeSet.size() || index2<0 || index2>=nodeSet.size())
         return 0;
     
-    // parameter
-    // double alpha = 0.7;
-    
     // 1-step trip
     double syn1 = 0;
     if (edgeWeightFrom[index1].find(index2) != edgeWeightFrom[index1].end())
@@ -274,6 +269,7 @@ double Graph::getSyntagSim(int index1, int index2, double alpha)
         double weight12 = (double) edgeWeightFrom[index1][index2];
         syn1 = (weight12 / (double) nodeSet[index1].outlink) * (weight12 / (double) nodeSet[index2].inlink);
     }
+    /*
     double syn_norm = 0;
     for (auto elem: edgeWeightFrom[index1])
     {
@@ -282,6 +278,7 @@ double Graph::getSyntagSim(int index1, int index2, double alpha)
         syn_norm += weight / (double) nodeSet[index1].outlink * weight / (double) nodeSet[index].inlink;
     }
     syn1 = syn1 / syn_norm;
+    */
     
     // 2-step trip
     double syn2_for = 0;
@@ -298,6 +295,7 @@ double Graph::getSyntagSim(int index1, int index2, double alpha)
     }
     
     return alpha * syn1 + (1-alpha) * syn2_for * syn2_back;
+    // return syn1;
 }
 
 
@@ -316,3 +314,4 @@ double Graph::getSyntagSim(string term1, string term2, double alpha)
     }
     return getSyntagSim(index1, index2, alpha);
 }
+
