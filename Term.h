@@ -22,6 +22,6 @@ using namespace std;
 
 vector<string> getTerms(string filename);
 void getLinkNum(Graph graph, long &total_inlink, long &total_outlink, string fout);
-map< string, map<string, double> > readSim(vector<string> &terms, string fin, double threshold, char delim);
+map< string, map<string, double> > readSim(vector<string> &terms, string fin, char fromORto, double threshold, char delim)
 
 #endif /* defined(__CitationGraph2__Term__) */
