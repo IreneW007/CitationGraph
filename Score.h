@@ -21,6 +21,7 @@
 #include "Term.h"
 using namespace std;
 
-void getDependency(string fin, string fout, double threshold, char delim);
+void getDependency(string fin, string fout_from, string fout_eq, char delim);
+void SyntagCmp(string fin, string fout, double threshold, char delim);
 
 #endif /* defined(__CitationGraph2__Score__) */

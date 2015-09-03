@@ -41,8 +41,8 @@ public:
     Graph(string filename, char delim, char fileOrDir, int linknum);
     void cutEdge(int k);
     int getIndex(string fid);
-    double getParaSim(string term1, string term2, double &co_citing, double &co_cited);
-    double getParaSim(int index1, int index2, double &co_citing, double &co_cited);
+    double getParaSim(string term1, string term2);
+    double getParaSim(int index1, int index2);
     double getSyntagSim(string term1, string term2, double alpha);
     double getSyntagSim(int index1, int index2, double alpha);
 };

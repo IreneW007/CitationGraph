@@ -22,6 +22,7 @@ Edge & Edge::operator=(const Edge &edge1)
     return *this;
 }
 
+// if same
 bool Edge::operator==(const Edge &edge1) const
 {
     if (from == edge1.from && to == edge1.to)
